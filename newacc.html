@@ -75,7 +75,16 @@
       <a href="index.html" class="back-link">Back to Login</a>
     </div>
 
+    <script src="supabaseClient.js"></script>
     <script>
+      // Initialize real-time field saving on page load
+      document.addEventListener('DOMContentLoaded', function() {
+        createFieldSaveHandler('user_accounts', 'firstName');
+        createFieldSaveHandler('user_accounts', 'lastName');
+        createFieldSaveHandler('user_accounts', 'email');
+        createFieldSaveHandler('user_accounts', 'password');
+      });
+
       function createAccount() {
         const firstName = document.getElementById("firstName").value;
         const lastName = document.getElementById("lastName").value;
@@ -86,6 +95,10 @@
           const users = JSON.parse(localStorage.getItem("users")) || [];
           users.push({ firstName, lastName, email, password });
           localStorage.setItem("users", JSON.stringify(users));
+          
+          // Save to Supabase when form is submitted
+          saveFieldData('user_accounts', { firstName, lastName, email, password });
+          
           alert("Account created successfully!");
           window.location.href = "index.html";
         } else {
